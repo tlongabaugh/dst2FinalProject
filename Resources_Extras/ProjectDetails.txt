@@ -25,3 +25,12 @@ Demo video:
 
 
 make plot with array of dots, use mouse listener
+
+
+
+To-dos after presentation:
+-Only focus on a few methods of synthesis and make them really good.
+	-Only do 808, FM, and sample load (pcm)
+-Implement polyrhythms
+-Paper (ICMC template)
+-Demo Video?
