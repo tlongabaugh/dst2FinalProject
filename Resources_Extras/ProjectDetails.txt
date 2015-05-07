@@ -1,0 +1,27 @@
+Multiple time signature/tempi drum machine:
+
+-4 tracks
+	-Each track can have it's own meter, tempo, synthesis/timbre, and filter
+
+-multi time signature
+-multi tempi
+-multi timbral (different methods of synthesis)
+-dynamically changing filters
+	- user can graph/determine how it changes over the course of the pattern length
+
+-possible user selection of rhythms, possible random generation
+
+-methods of synthesis: 808, granular synthesis, fm synthesis, phase vocoder, pcm/sample load)
+-dynamically varying filters
+
+
+Final Paper:
+-Use ICMC template for paper
+
+Demo video:
+2-3 min, screen capture and voice explaining how it works
+
+15 min presentation, project close to completion
+
+
+make plot with array of dots, use mouse listener
