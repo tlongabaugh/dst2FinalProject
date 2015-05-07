@@ -37,6 +37,12 @@ dots4 = [];
 filename = '';
 pathname = '';
 
+% Create Player with arbitrary output array (output is configured later
+% based on the drum machine grid)
+output = zeros(1,10);
+player = audioplayer(output,fs);
+%set(player, 'StopFcn',@sndplayer_stop);
+
 % CREATE THE GUI
 %-----------------------------------------------------------------
 close all;
@@ -65,7 +71,7 @@ track4Text = uicontrol('style', 'text', 'position', [10 250 50 15], ...
 track1axes = createAxes([175, 485, 600, 70],4,4,1,1);
 set(track1axes, 'ButtonDownFcn', @cb_mouseDown);
 plotSequence(1);
-track2axes = createAxes([175, 385, 600, 70],4,4,2,2);
+track2axes = createAxes([175, 385, 600, 70],4,4,1,2);
 set(track2axes, 'ButtonDownFcn', @cb_mouseDown);
 plotSequence(2);
 track3axes = createAxes([175, 285, 600, 70],4,4,1,3);
@@ -175,9 +181,8 @@ set(guiWindow, 'Visible', 'on');
             % create the t1 Sound, add it to the track array
             soundSamp1 = makeSound(soundStr);
             for i=1:length(dots1.position)
-                dots1.velocity
                 if dots1.velocity(i) ~= 0
-                    addSoundToArray(soundSamp1,1,i)
+                    addSoundToArray(soundSamp1,1,i);
                 end
             end
         elseif isequal(get(object, 'tag'),'t2Sound')
@@ -185,7 +190,7 @@ set(guiWindow, 'Visible', 'on');
             soundSamp2 = makeSound(soundStr);
             for i=1:length(dots2.position)
                 if dots2.velocity(i) ~= 0
-                    addSoundToArray(soundSamp2,2,i)
+                    addSoundToArray(soundSamp2,2,i);
                 end
             end
         elseif isequal(get(object, 'tag'),'t3Sound')
@@ -193,7 +198,7 @@ set(guiWindow, 'Visible', 'on');
             soundSamp3 = makeSound(soundStr);
             for i=1:length(dots3.position)
                 if dots3.velocity(i) ~= 0
-                    addSoundToArray(soundSamp3,3,i)
+                    addSoundToArray(soundSamp3,3,i);
                 end
             end
         else % event 'tag' is t4sound
@@ -201,7 +206,7 @@ set(guiWindow, 'Visible', 'on');
             soundSamp4 = makeSound(soundStr);
             for i=1:length(dots4.position)
                 if dots4.velocity(i) ~= 0
-                    addSoundToArray(soundSamp4,4,i)
+                    addSoundToArray(soundSamp4,4,i);
                 end
             end
         end
@@ -230,7 +235,7 @@ set(guiWindow, 'Visible', 'on');
     function cb_playButton(object, event)
         % callback function for playButton, sums the audio arrays together
         % and plays them using audioplay
-        disp('hello')
+
         % enable stop button, disable play button
         set(playButton,'enable','off');
         set(stopButton,'enable','on');
@@ -245,11 +250,13 @@ set(guiWindow, 'Visible', 'on');
         soundArray3temp = padarray(soundArray3,[0 longest-length(soundArray3)],'post');
         soundArray4temp = padarray(soundArray4,[0 longest-length(soundArray4)],'post');
         
-        y = (soundArray1temp+soundArray2temp+soundArray3temp+soundArray4temp);
-        figure(2);plot(y);
-%         player = audioplayer(y,fs);
-%         play(player);
-        soundsc(y,fs)
+        % Create the output
+        output = (soundArray1temp+soundArray2temp+soundArray3temp+soundArray4temp);
+        %figure(2);plot(output);
+        
+        % Play the audio until the stop button is hit
+        player = audioplayer(output,fs);
+        play(player);
         
     end
 
@@ -262,7 +269,7 @@ set(guiWindow, 'Visible', 'on');
         set(playButton,'enable','on');
         
         % stop audio
-        %stop(player);
+        stop(player);
     end
 
 
@@ -292,7 +299,7 @@ set(guiWindow, 'Visible', 'on');
                 if isequal(filename,0) == 0
                     y = loadAudioFile([pathname filename],fs);
                 else % user hit cancel, so just return array of zeros
-                    y = zeros(fs);
+                    y = zeros(1,fs);
                 end
         end
     end
@@ -359,7 +366,7 @@ set(guiWindow, 'Visible', 'on');
         
         % turn on the grid to the correct time signature
         set(axesHandle,'ylim',[0 1],'yticklabel',[0 1],'ytick',[0 1],...
-            'xlim',[1 xTickEnd+den/beatDiv],'xtick',xTicks)
+            'xlim',[1 xTickEnd+den/beatDiv],'xtick',xTicks);
         grid on; 
     end
 
@@ -561,6 +568,13 @@ set(guiWindow, 'Visible', 'on');
         % set x to that length
         len = samplesPerBeatDiv*length(numDiv)*measures;
         x = zeros(1,len);
+    end
+
+    % Helper function triggered when the loop is on and the player stops.
+    % Player is restarted to continue loop.
+    function sndplayer_stop(obj, event)
+        stop(obj);
+        play(obj);
     end
 
 end

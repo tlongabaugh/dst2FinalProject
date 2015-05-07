@@ -4,7 +4,7 @@ function y = create808(soundType,fs)
 
 if strcmp(soundType,'808 Snare') == 1
     % Generate the snare sound with 2 noise signals and adsr envelope
-    disp('snare');
+
     % create white noise and adsr envelopes
     noise = rand(1,fs).*2 - 1;
     lowAdsr = [linspace(0, 1, 0.001*fs) linspace(1, 0, 0.049*fs)...
@@ -27,7 +27,7 @@ if strcmp(soundType,'808 Snare') == 1
     
 elseif strcmp(soundType,'808 Kick') == 1
     % Generate the kick sound using noise and sine with adsr envelope
-    disp('kick');
+    
     % Make sine wave, noise for kick, adsr envelopes
     sine = sin(2*pi*60*(1:fs)/fs);
     impulse = linspace(1,1,1*fs);
@@ -47,7 +47,7 @@ elseif strcmp(soundType,'808 Kick') == 1
     
 else % Hi-Hat sound
     % Generate the Hi-Hat sound with 6 square waves and adsr envelope
-    disp('hi-hat');
+
     % Make square waves and sum together
     square1 = square(2*pi*421*(1:fs)/fs);
     square2 = square(2*pi*562*(1:fs)/fs);

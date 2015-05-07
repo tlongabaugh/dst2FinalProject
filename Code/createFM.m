@@ -38,6 +38,6 @@ end
 
 % synthesize signal
 y = ampEnv.*sin(2*pi*n*carrFreq + magEnv.*sin(2*pi*modFreq*n));
-y = y/max(abs(y))-.3;
+y = y/max(abs(y))*.7;
 
 end
