@@ -51,7 +51,6 @@ close all;
 guiWindow = figure('Visible', 'off', 'position', [0 0 800 600]);
 movegui(guiWindow,'center');
 
-
 % Create title for GUI
 titleText = uicontrol('style', 'text', 'position', [0 0 270 50], ...
     'FontSize', 20, 'String', {'Polyrhythmic Drum Machine',...
@@ -83,23 +82,19 @@ plotSequence(4);
 
 % Create Dropdown menu for synthesis types
 t1synthPopup = uicontrol('tag', 't1Synth', 'style', 'popup', 'String',...
-    {'808','Granular','FM','Phase Vocoder','Sample Load'},...
-    'position', [10 520 130 20],'value',1);
+    {'808','FM','Sample Load'}, 'position', [10 520 130 20]);
 set(t1synthPopup, 'callback', @cb_synthTypePopup);
 
 t2synthPopup = uicontrol('tag', 't2Synth', 'style', 'popup', 'String',...
-    {'808','Granular','FM','Phase Vocoder','Sample Load'},...
-    'position', [10 420 130 20],'value',2);
+    {'808','FM','Sample Load'}, 'position', [10 420 130 20]);
 set(t2synthPopup, 'callback', @cb_synthTypePopup);
 
 t3synthPopup = uicontrol('tag', 't3Synth', 'style', 'popup', 'String',...
-    {'808','Granular','FM','Phase Vocoder','Sample Load'},...
-    'position', [10 320 130 20],'value',3);
+    {'808','FM','Sample Load'}, 'position', [10 320 130 20]);
 set(t3synthPopup, 'callback', @cb_synthTypePopup);
 
 t4synthPopup = uicontrol('tag', 't4Synth', 'style', 'popup', 'String',...
-    {'808','Granular','FM','Phase Vocoder','Sample Load'},...
-    'position', [10 220 130 20],'value',4);
+    {'808','FM','Sample Load'}, 'position', [10 220 130 20]);
 set(t4synthPopup, 'callback', @cb_synthTypePopup);
 
 % Create Dropdown menu for sound types
@@ -118,11 +113,6 @@ set(t3soundPopup, 'callback', @cb_soundTypePopup);
 t4soundPopup = uicontrol('tag', 't4Sound', 'style', 'popup', 'String',...
     'Slct Synth Typed','position', [10 200 130 20]);
 set(t4soundPopup, 'callback', @cb_soundTypePopup);
-
-% % Open audio file button
-% audioOpenButton = uicontrol('style', 'pushbutton', 'position', [10 100 60 25],...
-%     'String', 'Open File', 'visible', 'off');
-% set(audioOpenButton, 'callback', @cb_AudioOpen);
 
 % Play Button
 playButton = uicontrol('style', 'pushbutton', 'position', [50 100 100 25],...
@@ -283,15 +273,9 @@ set(guiWindow, 'Visible', 'on');
             case {'808 Kick','808 Snare','808 Hi-hat'}
                 % create 808 sound
                 y = create808(soundName,fs);
-            case {'Gran Kick','Gran Snare','Gran Hi-hat'}
-                % granular synthesis 
-                y = createGranular(soundName,fs);
             case {'Trombone','Sitar','Bass Clarinet'}
                 % FM synthesis
                 y = createFM(soundName,fs);
-            case {'Sound 1','Sound 2','Sound 3'}
-                % Phase vocoder
-                y = createPhaseVocoder(soundName,fs);
             otherwise % PCM, baby!
                 % load an audio file
                 [filename,pathname] = uigetfile({'*.wav'},'Load Wav File');
@@ -311,14 +295,8 @@ set(guiWindow, 'Visible', 'on');
             % set the 808 sound option menu
             string = {'808 Kick', '808 Snare', '808 Hi-hat'};
         elseif synthType == 2
-            % set the Granular sound option menu
-            string = {'Gran Kick', 'Gran Snare', 'Gran Hi-hat'};
-        elseif synthType == 3
             % set the FM sound option menu
             string = {'Trombone', 'Sitar', 'Bass Clarinet'};
-        elseif synthType == 4
-            % set the Phase Vocoder sound option menu
-            string = {'Sound 1', 'Sound 2', 'Sound 3'};
         else
             % User is opening an audio file, so return blank string
             string = {'Audio File'};

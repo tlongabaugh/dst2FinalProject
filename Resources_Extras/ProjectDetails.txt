@@ -23,7 +23,6 @@ Demo video:
 
 15 min presentation, project close to completion
 
-
 make plot with array of dots, use mouse listener
 
 
@@ -34,3 +33,4 @@ To-dos after presentation:
 -Implement polyrhythms
 -Paper (ICMC template)
 -Demo Video?
+
