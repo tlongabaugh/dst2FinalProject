@@ -12,6 +12,8 @@ function [] = main()
 fs = 48000;
 % Beat division
 beatDiv = 16;
+% Number of measures
+numMeasures = 1;
 
 % Declare sample names and sound array names for each of the 4 tracks
 soundSamp1 = [];
@@ -27,6 +29,22 @@ sampPerBeatDiv2 = [];
 sampPerBeatDiv3 = [];
 sampPerBeatDiv4 = [];
 
+% Tempos
+tempo1 = 120;
+tempo2 = 120;
+tempo3 = 120;
+tempo4 = 120;
+
+% Meter values
+num1 = 4;
+den1 = 4;
+num2 = 4;
+den2 = 4;
+num3 = 4;
+den3 = 4;
+num4 = 4;
+den4 = 4;
+
 % Dots for user specification of sound placement on grid
 dots1 = [];
 dots2 = [];
@@ -36,12 +54,16 @@ dots4 = [];
 % filename/pathname for loading audio files
 filename = '';
 pathname = '';
+audioSample1 = [];
+audioSample2 = [];
+audioSample3 = [];
+audioSample4 = [];
 
 % Create Player with arbitrary output array (output is configured later
 % based on the drum machine grid)
 output = zeros(1,10);
 player = audioplayer(output,fs);
-%set(player, 'StopFcn',@sndplayer_stop);
+
 
 % CREATE THE GUI
 %-----------------------------------------------------------------
@@ -66,62 +88,73 @@ track3Text = uicontrol('style', 'text', 'position', [10 350 50 15], ...
 track4Text = uicontrol('style', 'text', 'position', [10 250 50 15], ...
     'FontSize', 14, 'String', 'Track 4');
 
-% Create axis for the drum grid, set mouseDown callback for them
-track1axes = createAxes([175, 485, 600, 70],4,4,1,1);
-set(track1axes, 'ButtonDownFcn', @cb_mouseDown);
-plotSequence(1);
-track2axes = createAxes([175, 385, 600, 70],4,4,1,2);
-set(track2axes, 'ButtonDownFcn', @cb_mouseDown);
-plotSequence(2);
-track3axes = createAxes([175, 285, 600, 70],4,4,1,3);
-set(track3axes, 'ButtonDownFcn', @cb_mouseDown);
-plotSequence(3);
-track4axes = createAxes([175, 185, 600, 70],4,4,1,4);
-set(track4axes, 'ButtonDownFcn', @cb_mouseDown);
-plotSequence(4);
-
 % Create Dropdown menu for synthesis types
 t1synthPopup = uicontrol('tag', 't1Synth', 'style', 'popup', 'String',...
-    {'808','FM','Sample Load'}, 'position', [10 520 130 20]);
-set(t1synthPopup, 'callback', @cb_synthTypePopup);
-
+    {'808','FM','Sample Load'}, 'position', [10 520 130 20],'callback', @cb_synthTypePopup);
 t2synthPopup = uicontrol('tag', 't2Synth', 'style', 'popup', 'String',...
-    {'808','FM','Sample Load'}, 'position', [10 420 130 20]);
-set(t2synthPopup, 'callback', @cb_synthTypePopup);
-
+    {'808','FM','Sample Load'}, 'position', [10 420 130 20],'callback', @cb_synthTypePopup);
 t3synthPopup = uicontrol('tag', 't3Synth', 'style', 'popup', 'String',...
-    {'808','FM','Sample Load'}, 'position', [10 320 130 20]);
-set(t3synthPopup, 'callback', @cb_synthTypePopup);
-
+    {'808','FM','Sample Load'}, 'position', [10 320 130 20],'callback', @cb_synthTypePopup);
 t4synthPopup = uicontrol('tag', 't4Synth', 'style', 'popup', 'String',...
-    {'808','FM','Sample Load'}, 'position', [10 220 130 20]);
-set(t4synthPopup, 'callback', @cb_synthTypePopup);
+    {'808','FM','Sample Load'}, 'position', [10 220 130 20],'callback', @cb_synthTypePopup);
 
 % Create Dropdown menu for sound types
 t1soundPopup = uicontrol('tag', 't1Sound', 'style', 'popup', 'String',...
-    'Slct Synth Type', 'position', [10 500 130 20]);
-set(t1soundPopup, 'callback', @cb_soundTypePopup);
-
+    'Slct Synth Type', 'position', [10 500 130 20],'callback',@cb_soundTypePopup);
 t2soundPopup = uicontrol('tag', 't2Sound', 'style', 'popup', 'String',...
-    'Slct Synth Type','position', [10 400 130 20]);
-set(t2soundPopup, 'callback', @cb_soundTypePopup);
-
+    'Slct Synth Type','position', [10 400 130 20],'callback',@cb_soundTypePopup);
 t3soundPopup = uicontrol('tag', 't3Sound', 'style', 'popup', 'String',...
-    'Slct Synth Type','position', [10 300 130 20]);
-set(t3soundPopup, 'callback', @cb_soundTypePopup);
-
+    'Slct Synth Type','position', [10 300 130 20],'callback',@cb_soundTypePopup);
 t4soundPopup = uicontrol('tag', 't4Sound', 'style', 'popup', 'String',...
-    'Slct Synth Typed','position', [10 200 130 20]);
-set(t4soundPopup, 'callback', @cb_soundTypePopup);
+    'Slct Synth Typed','position', [10 200 130 20],'callback',@cb_soundTypePopup);
+
+% Create dropdown menus for meter
+t1Meter = uicontrol('tag','t1Meter','style','popup','String',{'4/4','6/8',...
+    '7/4','9/8'},'position',[10 477 70 20],'callback',@cb_meter);
+t2Meter = uicontrol('tag','t2Meter','style','popup','String',{'4/4','6/8',...
+    '7/4','9/8'},'position',[10 377 70 20],'callback',@cb_meter);
+t3Meter = uicontrol('tag','t3Meter','style','popup','String',{'4/4','6/8',...
+    '7/4','9/8'},'position',[10 277 70 20],'callback',@cb_meter);
+t4Meter = uicontrol('tag','t4Meter','style','popup','String',{'4/4','6/8',...
+    '7/4','9/8'},'position',[10 177 70 20],'callback',@cb_meter);
+
+% Create tempo sliders
+t1Tempo = uicontrol('tag', 't1Tempo', 'Style', 'slider','Min',60,'Max',140,...
+    'Value',120,'sliderstep',[1/80 1/80],'Position', [80 480 70 15],'Callback', @cb_tempo); 
+t2Tempo = uicontrol('tag', 't2Tempo', 'Style', 'slider','Min',60,'Max',140,...
+    'Value',120,'sliderstep',[1/80 1/80],'Position', [80 380 70 15],'Callback', @cb_tempo); 
+t3Tempo = uicontrol('tag', 't3Tempo', 'Style', 'slider','Min',60,'Max',140,...
+    'Value',120,'sliderstep',[1/80 1/80],'Position', [80 280 70 15],'Callback', @cb_tempo); 
+t4Tempo = uicontrol('tag', 't4Tempo', 'Style', 'slider','Min',60,'Max',140,...
+    'Value',120,'sliderstep',[1/80 1/80],'Position', [80 180 70 15],'Callback', @cb_tempo); 
+
+% Create axis for the drum grid, set mouseDown callback for them
+track1axes = createAxes([175, 485, 600, 70],num1,den1,1);
+set(track1axes, 'ButtonDownFcn', @cb_mouseDown);
+plotSequence(1);
+track2axes = createAxes([175, 385, 600, 70],num2,den2,2);
+set(track2axes, 'ButtonDownFcn', @cb_mouseDown);
+plotSequence(2);
+track3axes = createAxes([175, 285, 600, 70],num3,den3,3);
+set(track3axes, 'ButtonDownFcn', @cb_mouseDown);
+plotSequence(3);
+track4axes = createAxes([175, 185, 600, 70],num4,den4,4);
+set(track4axes, 'ButtonDownFcn', @cb_mouseDown);
+plotSequence(4);
 
 % Play Button
 playButton = uicontrol('style', 'pushbutton', 'position', [50 100 100 25],...
-    'String','Play');
-set(playButton, 'callback', @cb_playButton);
+    'String','Play','callback',@cb_playButton);
 
 stopButton = uicontrol('style', 'pushbutton', 'position', [160 100 100 25],...
-    'String','Stop','enable','off');
-set(stopButton, 'callback', @cb_stopButton);
+    'String','Stop','enable','off','callback',@cb_stopButton);
+
+% Loop amount of time dropdown
+loopAmt = 1;
+loopText = uicontrol('style', 'text', 'position', [50 70 100 15], ...
+    'FontSize', 14, 'String', 'Loop Length'); 
+loopPopup = uicontrol('tag','loop','style','popup','position',[160 63 100 25],...
+    'String',{'1','2','4'},'callback', @cb_loopPopup);
 
 % Run synthesis menu callback functions to initialize sounds
 cb_synthTypePopup(t1synthPopup);
@@ -164,42 +197,108 @@ set(guiWindow, 'Visible', 'on');
 
     function cb_soundTypePopup(object, event)
         % Based on the synthesis and sound type, create the sound
+        
         str = get(object,'string');
         val = get(object,'value');
         soundStr = str{val};
-        if isequal(get(object, 'tag'),'t1Sound')
-            % create the t1 Sound, add it to the track array
-            soundSamp1 = makeSound(soundStr);
-            for i=1:length(dots1.position)
-                if dots1.velocity(i) ~= 0
-                    addSoundToArray(soundSamp1,1,i);
-                end
+        if isequal(soundStr,'Audio File')
+            % load an audio file
+            [filename,pathname] = uigetfile({'*.wav'},'Load Wav File');
+            % if user hits "ok" then load the file
+            if isequal(filename,0) == 0
+                temp = loadAudioFile([pathname filename],fs);
+            else % user hit cancel, so just return array of zeros
+                temp = zeros(1,fs);
             end
-        elseif isequal(get(object, 'tag'),'t2Sound')
-            % create the t2 Sound, add it to the track array
-            soundSamp2 = makeSound(soundStr);
-            for i=1:length(dots2.position)
-                if dots2.velocity(i) ~= 0
-                    addSoundToArray(soundSamp2,2,i);
-                end
-            end
-        elseif isequal(get(object, 'tag'),'t3Sound')
-            % create the t3 Sound, add it to the track array
-            soundSamp3 = makeSound(soundStr);
-            for i=1:length(dots3.position)
-                if dots3.velocity(i) ~= 0
-                    addSoundToArray(soundSamp3,3,i);
-                end
-            end
-        else % event 'tag' is t4sound
-            % create the t4 Sound, add it to the track array
-            soundSamp4 = makeSound(soundStr);
-            for i=1:length(dots4.position)
-                if dots4.velocity(i) ~= 0
-                    addSoundToArray(soundSamp4,4,i);
-                end
+            
+            if isequal(get(object, 'tag'),'t1Sound')
+                audioSample1 = temp;
+            elseif isequal(get(object, 'tag'),'t2Sound')
+                audioSample2 = temp;
+            elseif isequal(get(object, 'tag'),'t3Sound')
+                audioSample3 = temp;
+            else
+                audioSample4 = temp;
             end
         end
+                
+    end
+
+    function cb_meter(object, event)
+        % callback for when the user changes the meter of a track
+        
+        str = get(object,'string');
+        val = get(object,'value');
+        meterStr = str{val};
+        
+        % get the numerator and denominator according to user's choice
+        if isequal(meterStr,'4/4')
+            num = 4;
+            den = 4;
+        elseif isequal(meterStr,'6/8')
+            num = 6;
+            den = 8;
+        elseif isequal(meterStr,'7/4')
+            num = 7;
+            den = 4;
+        else
+            num = 9;
+            den = 8;
+        end
+        
+        % set the appropriate track meter num and den, update the axes
+        if isequal(get(object, 'tag'),'t1Meter')
+            num1 = num;
+            den1 = den;
+            % Delete and replace the axes
+            delete(track1axes);
+            track1axes = createAxes([175, 485, 600, 70],num1,den1,1);
+            set(track1axes, 'ButtonDownFcn', @cb_mouseDown);
+            plotSequence(1);
+        elseif isequal(get(object, 'tag'),'t2Meter')
+            num2 = num;
+            den2 = den;
+            % Delete and replace the axes
+            delete(track2axes);
+            track2axes = createAxes([175, 385, 600, 70],num2,den2,2);
+            set(track2axes, 'ButtonDownFcn', @cb_mouseDown);
+            plotSequence(2);
+        elseif isequal(get(object, 'tag'),'t3Meter')
+            num3 = num;
+            den3 = den;
+            % Delete and replace the axes
+            delete(track3axes);
+            track3axes = createAxes([175, 285, 600, 70],num3,den3,3);
+            set(track3axes, 'ButtonDownFcn', @cb_mouseDown);
+            plotSequence(3);
+        else % 4
+            num4 = num;
+            den4 = den;
+            % Delete and replace the axes
+            delete(track4axes);
+            track4axes = createAxes([175, 185, 600, 70],num4,den4,4);
+            set(track4axes, 'ButtonDownFcn', @cb_mouseDown);
+            plotSequence(4);
+        end 
+    end
+
+    function cb_tempo(object, event)
+        % callback for when the user changes the tempo of a track
+        
+        newTempo = round(get(object,'value'));
+        disp(newTempo);
+        
+        % recalculate the length of the track array, and add the sounds
+        % into it according to the new tempo
+        if isequal(get(object, 'tag'),'t1Tempo')
+            tempo1 = newTempo;
+        elseif isequal(get(object, 'tag'),'t2Tempo')
+            tempo2 = newTempo;
+        elseif isequal(get(object, 'tag'),'t3Tempo')
+            tempo3 = newTempo;
+        else % 4
+            tempo4 = newTempo;
+        end 
     end
 
     function cb_mouseDown(object, event)
@@ -212,13 +311,13 @@ set(guiWindow, 'Visible', 'on');
         % Set the velocity for the appropriate track based on the mouse
         % click position
         if isequal(get(object, 'tag'),'axes1')
-            setVelocityAndAddSound(1,currPoint);
+            setVelocity(1,currPoint);
         elseif isequal(get(object, 'tag'),'axes2')
-            setVelocityAndAddSound(2,currPoint);
+            setVelocity(2,currPoint);
         elseif isequal(get(object, 'tag'),'axes3')
-            setVelocityAndAddSound(3,currPoint);
+            setVelocity(3,currPoint);
         else % axes4
-            setVelocityAndAddSound(4,currPoint);
+            setVelocity(4,currPoint);
         end 
     end
 
@@ -231,6 +330,7 @@ set(guiWindow, 'Visible', 'on');
         set(stopButton,'enable','on');
         
         % sum all the arrays together:
+        sequenceSounds();
         
         % find the longest array, pad them all to that length
         longest = max([length(soundArray1) length(soundArray2)...
@@ -242,10 +342,11 @@ set(guiWindow, 'Visible', 'on');
         
         % Create the output
         output = (soundArray1temp+soundArray2temp+soundArray3temp+soundArray4temp);
-        %figure(2);plot(output);
+        figure(2);plot(output);
         
         % Play the audio until the stop button is hit
         player = audioplayer(output,fs);
+        player.StopFcn = @audioplayer_stop;
         play(player);
         
     end
@@ -262,11 +363,20 @@ set(guiWindow, 'Visible', 'on');
         stop(player);
     end
 
+    function cb_loopPopup(object, event)
+        % callback funciton for loop popup, which tells how many times the
+        % audio should be looped
+        
+        % get the value
+        val = get(object,'value');
+        loopAmt = val;
+    end
+
 
 % HELPER FUNCTIONS
 % -------------------------------------------------
 
-    function y = makeSound(soundName)
+    function y = makeSound(soundName,trackNum)
         % Creates the sound based on the string name passed in
         
         switch soundName
@@ -278,12 +388,15 @@ set(guiWindow, 'Visible', 'on');
                 y = createFM(soundName,fs);
             otherwise % PCM, baby!
                 % load an audio file
-                [filename,pathname] = uigetfile({'*.wav'},'Load Wav File');
-                % if user hits "ok" then load the file
-                if isequal(filename,0) == 0
-                    y = loadAudioFile([pathname filename],fs);
-                else % user hit cancel, so just return array of zeros
-                    y = zeros(1,fs);
+                switch trackNum
+                    case 1
+                        y = audioSample1;
+                    case 2
+                        y = audioSample2;
+                    case 3
+                        y = audioSample3;
+                    case 4
+                        y = audioSample4;
                 end
         end
     end
@@ -303,7 +416,7 @@ set(guiWindow, 'Visible', 'on');
         end
     end
 
-    function axesHandle = createAxes(position,num,den,numMeasures,trackNum)
+    function axesHandle = createAxes(position,num,den,trackNum)
         % Creates an axes at the given position with the time signature
         % numerator and denominator
         
@@ -324,22 +437,18 @@ set(guiWindow, 'Visible', 'on');
                 dots1.position = xTicks;
                 dots1.velocity = zeros(1,length(xTicks));
                 set(axesHandle,'tag','axes1');
-                [soundArray1,sampPerBeatDiv1] = createTrackSampleArray(num,den,90,numMeasures);
             case 2
                 dots2.position = xTicks;
                 dots2.velocity = zeros(1,length(xTicks));
                 set(axesHandle,'tag','axes2');
-                [soundArray2,sampPerBeatDiv2] = createTrackSampleArray(num,den,90,numMeasures);
             case 3
                 dots3.position = xTicks;
                 dots3.velocity = zeros(1,length(xTicks));
                 set(axesHandle,'tag','axes3');
-                [soundArray3,sampPerBeatDiv3] = createTrackSampleArray(num,den,90,numMeasures);
             case 4
                 dots4.position = xTicks;
                 dots4.velocity = zeros(1,length(xTicks));
                 set(axesHandle,'tag','axes4');
-                [soundArray4,sampPerBeatDiv4] = createTrackSampleArray(num,den,90,numMeasures);
         end
         
         % turn on the grid to the correct time signature
@@ -348,7 +457,7 @@ set(guiWindow, 'Visible', 'on');
         grid on; 
     end
 
-    function [] = setVelocityAndAddSound(trackNum,currPoint)
+    function [] = setVelocity(trackNum,currPoint)
         % sets the velocity for the specified tracknumber and mouse
         % position
         
@@ -374,8 +483,6 @@ set(guiWindow, 'Visible', 'on');
                 end
                 % Update the sequence in the gui
                 plotSequence(1);
-                % Add sound to array (or zero it out if user turns it off)
-                addSoundToArray(soundSamp1,trackNum,idx);
             case 2
                 % rounds mouse x pos to beat grid
                 quant = dots2.position(2)-dots2.position(1);
@@ -390,8 +497,6 @@ set(guiWindow, 'Visible', 'on');
                 end
                 % Update the sequence in the gui
                 plotSequence(2);
-                % Add sound to array (or zero it out if user turns it off)
-                addSoundToArray(soundSamp2,trackNum,idx);
             case 3
                 % rounds mouse x pos to beat grid
                 quant = dots3.position(2)-dots3.position(1);
@@ -406,8 +511,6 @@ set(guiWindow, 'Visible', 'on');
                 end
                 % Update the sequence in the gui
                 plotSequence(3);
-                % Add sound to array (or zero it out if user turns it off)
-                addSoundToArray(soundSamp3,trackNum,idx);
             case 4
                 % rounds mouse x pos to beat grid
                 quant = dots4.position(2)-dots4.position(1);
@@ -422,8 +525,6 @@ set(guiWindow, 'Visible', 'on');
                 end
                 % Update the sequence in the gui
                 plotSequence(4);
-                % Add sound to array (or zero it out if user turns it off)
-                addSoundToArray(soundSamp4,trackNum,idx);
         end
         
     end
@@ -506,6 +607,59 @@ set(guiWindow, 'Visible', 'on');
         end
     end
 
+    function [] = sequenceSounds()
+        % Sequences the appropriate sounds into the corresponding track's
+        % output array
+        
+        disp('Constructing sound output');
+        
+        % Construct the output arrays
+        [soundArray1,sampPerBeatDiv1] = createTrackSampleArray(num1,den1,tempo1,numMeasures);
+        [soundArray2,sampPerBeatDiv2] = createTrackSampleArray(num2,den2,tempo2,numMeasures);
+        [soundArray3,sampPerBeatDiv3] = createTrackSampleArray(num3,den3,tempo3,numMeasures);
+        [soundArray4,sampPerBeatDiv4] = createTrackSampleArray(num4,den4,tempo4,numMeasures);
+        
+        % create the t1 Sounds, add them to the track array
+        str = get(t1soundPopup,'string');
+        val = get(t1soundPopup,'value');
+        soundSamp1 = makeSound(str{val},1);
+        for i=1:length(dots1.position)
+            if dots1.velocity(i) ~= 0
+                addSoundToArray(soundSamp1,1,i);
+            end
+        end
+
+        % create the t2 Sounds, add them to the track array
+        str = get(t2soundPopup,'string');
+        val = get(t2soundPopup,'value');
+        soundSamp2 = makeSound(str{val},2);
+        for i=1:length(dots2.position)
+            if dots2.velocity(i) ~= 0
+                addSoundToArray(soundSamp2,2,i);
+            end
+        end
+            
+        % create the t3 Sounds, add them to the track array
+        str = get(t3soundPopup,'string');
+        val = get(t3soundPopup,'value');
+        soundSamp3 = makeSound(str{val},3);
+        for i=1:length(dots3.position)
+            if dots3.velocity(i) ~= 0
+                addSoundToArray(soundSamp3,3,i);
+            end
+        end
+        
+        % create the t4 Sounds, add them to the track array
+        str = get(t4soundPopup,'string');
+        val = get(t4soundPopup,'value');
+        soundSamp4 = makeSound(str{val},4);
+        for i=1:length(dots4.position)
+            if dots4.velocity(i) ~= 0
+                addSoundToArray(soundSamp4,4,i);
+            end
+        end
+    end
+
     function [] = plotSequence(trackNum)
         % Plots the dots on to the specified axis, mimicking a drum grid.
         
@@ -534,11 +688,11 @@ set(guiWindow, 'Visible', 'on');
         % Calculates and returns an array of samples equal to the length of 
         % the measure, as well as how many samples per beat division.
 
-        % number of samples per minute
-        samplesPerMin = fs*60;
-
-        % number of samples per beat division 
-        samplesPerBeatDiv = round((samplesPerMin/bpm)*den/beatDiv);
+        % samples per beat
+        samplesPerBeat = (60/bpm)*fs;
+        
+        % samples per beat division
+        samplesPerBeatDiv = round(samplesPerBeat*den/beatDiv*4/den);
 
         % calculate the number of divisions in the array
         numDiv = 1:den/beatDiv:(num+1-den/beatDiv);
@@ -548,11 +702,10 @@ set(guiWindow, 'Visible', 'on');
         x = zeros(1,len);
     end
 
-    % Helper function triggered when the loop is on and the player stops.
-    % Player is restarted to continue loop.
-    function sndplayer_stop(obj, event)
+    function audioplayer_stop(obj,event)
         stop(obj);
-        play(obj);
+        set(stopButton,'enable','off');
+        set(playButton,'enable','on');
     end
 
 end

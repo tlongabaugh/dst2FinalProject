@@ -34,3 +34,5 @@ To-dos after presentation:
 -Paper (ICMC template)
 -Demo Video?
 
+
+-shorter sequences get looped to length of longest one
