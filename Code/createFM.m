@@ -1,4 +1,4 @@
-function y = createFM(soundType,fs)
+function y = createFM(soundType,fs,freqMult)
 % Function creates FM sounds of bass clarinet, trombone, or sitar based on
 % which one the user has selected in the gui
 
@@ -37,7 +37,7 @@ end
 
 
 % synthesize signal
-y = ampEnv.*sin(2*pi*n*carrFreq + magEnv.*sin(2*pi*modFreq*n));
-y = y/max(abs(y))*.7;
+y = ampEnv.*sin(2*pi*n*(carrFreq*freqMult) + magEnv.*sin(2*pi*(modFreq*freqMult)*n));
+y = y/max(abs(y))*.5;
 
 end

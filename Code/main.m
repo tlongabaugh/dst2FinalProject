@@ -9,6 +9,7 @@ function [] = main()
 % grid to change the filter's response over time.
 
 % Global sampling rate (pcm samples will be converted to this)
+clear;
 fs = 48000;
 % Beat division
 beatDiv = 16;
@@ -154,7 +155,7 @@ loopAmt = 1;
 loopText = uicontrol('style', 'text', 'position', [50 70 100 15], ...
     'FontSize', 14, 'String', 'Loop Length'); 
 loopPopup = uicontrol('tag','loop','style','popup','position',[160 63 100 25],...
-    'String',{'1','2','4'},'callback', @cb_loopPopup);
+    'String',{'1','2','4','8'},'callback', @cb_loopPopup);
 
 % Run synthesis menu callback functions to initialize sounds
 cb_synthTypePopup(t1synthPopup);
@@ -286,7 +287,7 @@ set(guiWindow, 'Visible', 'on');
         % callback for when the user changes the tempo of a track
         
         newTempo = round(get(object,'value'));
-        disp(newTempo);
+        disp(['New Tempo: ' num2str(newTempo)]);
         
         % recalculate the length of the track array, and add the sounds
         % into it according to the new tempo
@@ -331,20 +332,10 @@ set(guiWindow, 'Visible', 'on');
         
         % sum all the arrays together:
         sequenceSounds();
-        
-        % find the longest array, pad them all to that length
-        longest = max([length(soundArray1) length(soundArray2)...
-            length(soundArray3) length(soundArray4)]);
-        soundArray1temp = padarray(soundArray1,[0 longest-length(soundArray1)],'post');
-        soundArray2temp = padarray(soundArray2,[0 longest-length(soundArray2)],'post');
-        soundArray3temp = padarray(soundArray3,[0 longest-length(soundArray3)],'post');
-        soundArray4temp = padarray(soundArray4,[0 longest-length(soundArray4)],'post');
-        
-        % Create the output
-        output = (soundArray1temp+soundArray2temp+soundArray3temp+soundArray4temp);
-        figure(2);plot(output);
+        createOutputArray();
         
         % Play the audio until the stop button is hit
+        disp('Playing sequence...');
         player = audioplayer(output,fs);
         player.StopFcn = @audioplayer_stop;
         play(player);
@@ -359,6 +350,8 @@ set(guiWindow, 'Visible', 'on');
         set(stopButton,'enable','off');
         set(playButton,'enable','on');
         
+        disp('Sequence stopped.')
+        
         % stop audio
         stop(player);
     end
@@ -367,16 +360,17 @@ set(guiWindow, 'Visible', 'on');
         % callback funciton for loop popup, which tells how many times the
         % audio should be looped
         
-        % get the value
+        % get the value, set the loop amount to it
+        str = get(object,'string');
         val = get(object,'value');
-        loopAmt = val;
+        loopAmt = str2num(str{val});
     end
 
 
 % HELPER FUNCTIONS
 % -------------------------------------------------
 
-    function y = makeSound(soundName,trackNum)
+    function y = makeSound(soundName,trackNum,dotsVal)
         % Creates the sound based on the string name passed in
         
         switch soundName
@@ -385,7 +379,7 @@ set(guiWindow, 'Visible', 'on');
                 y = create808(soundName,fs);
             case {'Trombone','Sitar','Bass Clarinet'}
                 % FM synthesis
-                y = createFM(soundName,fs);
+                y = createFM(soundName,fs,dotsVal);
             otherwise % PCM, baby!
                 % load an audio file
                 switch trackNum
@@ -529,18 +523,31 @@ set(guiWindow, 'Visible', 'on');
         
     end
 
-    function [] = addSoundToArray(sound,trackNum,soundIdx)
+    function [] = addSoundToArray(trackNum,soundIdx)
         % adds the track's specified sound to the corresponding track array
+        
+        % fade to prevent clicks
+        fade = linspace(1,0,10);
+        
         switch trackNum
             case 1
-                % get start position in samples
+                % get start position in samples, fade the last 10 samples
+                % prior to prevent clicks
                 sampPosition = soundIdx*sampPerBeatDiv1-(sampPerBeatDiv1-1);
+                if sampPosition > 10
+                    soundArray1(sampPosition-9:sampPosition) = soundArray1(sampPosition-9:sampPosition).*fade;
+                end
                 
                 % Add this into the whole sample array for the track
                 i=1;
-                while i <= length(sound)
-                    soundArray1(sampPosition) = dots1.velocity(soundIdx)...
-                        *soundSamp1(i);
+                while i <= length(soundSamp1)
+                    if get(t1synthPopup,'value') == 2
+                        % fm, so velocity is irrelevant
+                        soundArray1(sampPosition) = soundSamp1(i);
+                    else
+                        soundArray1(sampPosition) = dots1.velocity(soundIdx)...
+                            *soundSamp1(i);
+                    end
                     
                     % Don't out of bounds if soundSamp is longer than end
                     % of array
@@ -551,14 +558,23 @@ set(guiWindow, 'Visible', 'on');
                     sampPosition = sampPosition+1;
                 end
             case 2
-                % get start position in samples
+                % get start position in samples, fade the last 10 samples
+                % prior to prevent clicks
                 sampPosition = soundIdx*sampPerBeatDiv2-(sampPerBeatDiv2-1);
+                if sampPosition > 10
+                    soundArray2(sampPosition-9:sampPosition) = soundArray2(sampPosition-9:sampPosition).*fade;
+                end
                 
                 % Add this into the whole sample array for the track
                 i=1;
-                while i <= length(sound)
-                    soundArray2(sampPosition) = dots2.velocity(soundIdx)...
-                        *soundSamp2(i);
+                while i <= length(soundSamp2)
+                    if get(t2synthPopup,'value') == 2
+                        % fm, so velocity is irrelevant
+                        soundArray2(sampPosition) = soundSamp2(i);
+                    else
+                        soundArray2(sampPosition) = dots2.velocity(soundIdx)...
+                            *soundSamp2(i);
+                    end
                     
                     % Don't out of bounds if soundSamp is longer than end
                     % of array
@@ -569,14 +585,23 @@ set(guiWindow, 'Visible', 'on');
                     sampPosition = sampPosition+1;
                 end
             case 3
-                % get start position in samples
+                % get start position in samples, fade the last 10 samples
+                % prior to prevent clicks
                 sampPosition = soundIdx*sampPerBeatDiv3-(sampPerBeatDiv3-1);
+                if sampPosition > 10
+                    soundArray3(sampPosition-9:sampPosition) = soundArray3(sampPosition-9:sampPosition).*fade;
+                end
                 
                 % Add this into the whole sample array for the track
                 i=1;
-                while i <= length(sound)
-                    soundArray3(sampPosition) = dots3.velocity(soundIdx)...
-                        *soundSamp3(i);
+                while i <= length(soundSamp3)
+                    if get(t3synthPopup,'value') == 2
+                        % fm, so velocity is irrelevant
+                        soundArray3(sampPosition) = soundSamp3(i);
+                    else
+                        soundArray3(sampPosition) = dots3.velocity(soundIdx)...
+                            *soundSamp3(i);
+                    end
                     
                     % Don't out of bounds if soundSamp is longer than end
                     % of array
@@ -587,14 +612,23 @@ set(guiWindow, 'Visible', 'on');
                     sampPosition = sampPosition+1;
                 end
             case 4
-                % get start position in samples
+                % get start position in samples, fade the last 10 samples
+                % prior to prevent clicks
                 sampPosition = soundIdx*sampPerBeatDiv4-(sampPerBeatDiv4-1);
+                if sampPosition > 10
+                    soundArray4(sampPosition-9:sampPosition) = soundArray4(sampPosition-9:sampPosition).*fade;
+                end
                 
                 % Add this into the whole sample array for the track
                 i=1;
-                while i <= length(sound)
-                    soundArray4(sampPosition) = dots4.velocity(soundIdx)...
-                        *soundSamp4(i);
+                while i <= length(soundSamp4)
+                    if get(t4synthPopup,'value') == 2
+                        % fm, so velocity is irrelevant
+                        soundArray4(sampPosition) = soundSamp4(i);
+                    else
+                        soundArray4(sampPosition) = dots4.velocity(soundIdx)...
+                         *soundSamp4(i);
+                    end
                     
                     % Don't out of bounds if soundSamp is longer than end
                     % of array
@@ -611,7 +645,8 @@ set(guiWindow, 'Visible', 'on');
         % Sequences the appropriate sounds into the corresponding track's
         % output array
         
-        disp('Constructing sound output');
+        disp('Constructing sound output...');
+        fm = 1;
         
         % Construct the output arrays
         [soundArray1,sampPerBeatDiv1] = createTrackSampleArray(num1,den1,tempo1,numMeasures);
@@ -622,42 +657,162 @@ set(guiWindow, 'Visible', 'on');
         % create the t1 Sounds, add them to the track array
         str = get(t1soundPopup,'string');
         val = get(t1soundPopup,'value');
-        soundSamp1 = makeSound(str{val},1);
+        if get(t1synthPopup,'value') ~= 2
+            soundSamp1 = makeSound(str{val},1,0);
+            fm = 0;
+        end
         for i=1:length(dots1.position)
-            if dots1.velocity(i) ~= 0
-                addSoundToArray(soundSamp1,1,i);
+            if dots1.velocity(i) ~= 0 && fm == 1
+                soundSamp1 = makeSound(str{val},1,dots1.velocity(i)+.7);
+                addSoundToArray(1,i);
+            elseif dots1.velocity(i) ~= 0
+                addSoundToArray(1,i);
             end
         end
 
         % create the t2 Sounds, add them to the track array
+        fm = 1;
         str = get(t2soundPopup,'string');
         val = get(t2soundPopup,'value');
-        soundSamp2 = makeSound(str{val},2);
+        if get(t1synthPopup,'value') ~= 2
+            soundSamp1 = makeSound(str{val},2,0);
+            fm = 0;
+        end
         for i=1:length(dots2.position)
-            if dots2.velocity(i) ~= 0
-                addSoundToArray(soundSamp2,2,i);
+            if dots2.velocity(i) ~= 0 && fm == 1
+                soundSamp2 = makeSound(str{val},2,dots2.velocity(i)+.7);
+                addSoundToArray(2,i);
+            elseif dots2.velocity(i)
+                addSoundToArray(2,i);                
             end
         end
             
         % create the t3 Sounds, add them to the track array
+        fm = 1;
         str = get(t3soundPopup,'string');
         val = get(t3soundPopup,'value');
-        soundSamp3 = makeSound(str{val},3);
+        if get(t3synthPopup,'value') ~= 2
+            soundSamp3 = makeSound(str{val},3,0);
+            fm = 0;
+        end
         for i=1:length(dots3.position)
-            if dots3.velocity(i) ~= 0
-                addSoundToArray(soundSamp3,3,i);
+            if dots3.velocity(i) ~= 0 && fm == 1
+                soundSamp3 = makeSound(str{val},3,dots3.velocity(i)+.7);
+                addSoundToArray(3,i);
+            elseif dots3.velocity(i)
+                addSoundToArray(3,i);
             end
         end
         
         % create the t4 Sounds, add them to the track array
+        fm = 1;
         str = get(t4soundPopup,'string');
         val = get(t4soundPopup,'value');
-        soundSamp4 = makeSound(str{val},4);
+        if get(t4synthPopup,'value') ~= 2
+            soundSamp4 = makeSound(str{val},4,0);
+            fm = 0;
+        end
         for i=1:length(dots4.position)
-            if dots4.velocity(i) ~= 0
-                addSoundToArray(soundSamp4,4,i);
+            if dots4.velocity(i) ~= 0 && fm == 1;
+                soundSamp4 = makeSound(str{val},4,dots4.velocity(i)+.7);
+                addSoundToArray(4,i);
+            elseif dots4.velocity(i)
+                addSoundToArray(4,i);
             end
         end
+    end
+
+    function [] = createOutputArray()
+        % Creates the output array to the loop amount that the user has
+        % selected
+        
+        % find the longest array
+        [~, longestIdx] = max([length(soundArray1) length(soundArray2)...
+            length(soundArray3) length(soundArray4)]);
+        
+        % Loop all the arrays to that length
+        switch longestIdx
+            case 1
+                % repeat longest array loop number of times
+                soundArray1 = repmat(soundArray1,1,loopAmt);
+                
+                % loop other arrays to that length
+                
+                % use repmat to loop as close as we can a whole number of
+                % times
+                longest = length(soundArray1);
+                soundArray2 = repmat(soundArray2,1,loopAmt+floor(longest/length(soundArray2)-1*loopAmt));
+                soundArray3 = repmat(soundArray3,1,loopAmt+floor(longest/length(soundArray3)-1*loopAmt));
+                soundArray4 = repmat(soundArray4,1,loopAmt+floor(longest/length(soundArray4)-1*loopAmt));
+                
+                % get the arrays to the exact lengths of the longest one
+                soundArray2 = [soundArray2 soundArray2(1:longest-length(soundArray2))];
+                soundArray3 = [soundArray3 soundArray3(1:longest-length(soundArray3))];
+                soundArray4 = [soundArray4 soundArray4(1:longest-length(soundArray4))];
+                
+            case 2
+                % repeat longest array loop number of times
+                soundArray2 = repmat(soundArray2,1,loopAmt);
+                
+                % loop other arrays to that length
+                
+                % use repmat to loop as close as we can a whole number of
+                % times
+                longest = length(soundArray2);
+                soundArray1 = repmat(soundArray1,1,loopAmt+floor(longest/length(soundArray1)-1*loopAmt));
+                soundArray3 = repmat(soundArray3,1,loopAmt+floor(longest/length(soundArray3)-1*loopAmt));
+                soundArray4 = repmat(soundArray4,1,loopAmt+floor(longest/length(soundArray4)-1*loopAmt));
+                
+                % get the arrays to the exact lengths of the longest one
+                soundArray1 = [soundArray1 soundArray1(1:longest-length(soundArray1))];
+                soundArray3 = [soundArray3 soundArray3(1:longest-length(soundArray3))];
+                soundArray4 = [soundArray4 soundArray4(1:longest-length(soundArray4))];
+            case 3
+                % repeat longest array loop number of times
+                soundArray3 = repmat(soundArray3,1,loopAmt);
+                
+                % loop other arrays to that length
+                
+                % use repmat to loop as close as we can a whole number of
+                % times
+                longest = length(soundArray3);
+                soundArray2 = repmat(soundArray2,1,loopAmt+floor(longest/length(soundArray2)-1*loopAmt));
+                soundArray1 = repmat(soundArray1,1,loopAmt+floor(longest/length(soundArray1)-1*loopAmt));
+                soundArray4 = repmat(soundArray4,1,loopAmt+floor(longest/length(soundArray4)-1*loopAmt));
+                
+                % get the arrays to the exact lengths of the longest one
+                soundArray2 = [soundArray2 soundArray2(1:longest-length(soundArray2))];
+                soundArray1 = [soundArray1 soundArray1(1:longest-length(soundArray1))];
+                soundArray4 = [soundArray4 soundArray4(1:longest-length(soundArray4))];
+            case 4
+                % repeat longest array loop number of times
+                soundArray4 = repmat(soundArray4,1,loopAmt);
+                
+                % loop other arrays to that length
+                
+                % use repmat to loop as close as we can a whole number of
+                % times
+                longest = length(soundArray4);
+                soundArray2 = repmat(soundArray2,1,loopAmt+floor(longest/length(soundArray2)-1*loopAmt));
+                soundArray3 = repmat(soundArray3,1,loopAmt+floor(longest/length(soundArray3)-1*loopAmt));
+                soundArray1 = repmat(soundArray1,1,loopAmt+floor(longest/length(soundArray1)-1*loopAmt));
+                
+                % get the arrays to the exact lengths of the longest one
+                soundArray2 = [soundArray2 soundArray2(1:longest-length(soundArray2))];
+                soundArray3 = [soundArray3 soundArray3(1:longest-length(soundArray3))];
+                soundArray1 = [soundArray1 soundArray1(1:longest-length(soundArray1))];
+        end
+        
+        % Create the output, put slight fade on the end to prevent clicks
+        fade = linspace(1,0,round(.2*fs));
+        output = (soundArray1+soundArray2+soundArray3+soundArray4);
+        output(end-.2*fs+1:end) = output(end-.2*fs+1:end).*fade;
+        
+        % Normalize output
+        output = output/max(abs(output));
+
+        figure(2);plot(output);
+        
     end
 
     function [] = plotSequence(trackNum)
@@ -703,9 +858,13 @@ set(guiWindow, 'Visible', 'on');
     end
 
     function audioplayer_stop(obj,event)
+        % a custom stop function that switchs the play and stop buttons
+        % back to their appropriate positions
+        
         stop(obj);
         set(stopButton,'enable','off');
         set(playButton,'enable','on');
+        disp('Sequence finished.');
     end
 
 end
