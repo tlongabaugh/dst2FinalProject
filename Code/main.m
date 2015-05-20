@@ -8,6 +8,8 @@ function [] = main()
 % frequency for the filter of choice can be drawn along the drum machine
 % grid to change the filter's response over time.
 
+% Usage: main()
+
 % Global sampling rate (pcm samples will be converted to this)
 clear;
 fs = 48000;
@@ -377,7 +379,7 @@ set(guiWindow, 'Visible', 'on');
             case {'808 Kick','808 Snare','808 Hi-hat'}
                 % create 808 sound
                 y = create808(soundName,fs);
-            case {'Trombone','Sitar','Bass Clarinet'}
+            case {'Trombone','Sitar','Bass Clarinet','Trumpet','Guitar','Bell'}
                 % FM synthesis
                 y = createFM(soundName,fs,dotsVal);
             otherwise % PCM, baby!
@@ -403,7 +405,7 @@ set(guiWindow, 'Visible', 'on');
             string = {'808 Kick', '808 Snare', '808 Hi-hat'};
         elseif synthType == 2
             % set the FM sound option menu
-            string = {'Trombone', 'Sitar', 'Bass Clarinet'};
+            string = {'Trombone', 'Sitar', 'Bass Clarinet','Trumpet','Guitar','Bell'};
         else
             % User is opening an audio file, so return blank string
             string = {'Audio File'};
@@ -674,8 +676,8 @@ set(guiWindow, 'Visible', 'on');
         fm = 1;
         str = get(t2soundPopup,'string');
         val = get(t2soundPopup,'value');
-        if get(t1synthPopup,'value') ~= 2
-            soundSamp1 = makeSound(str{val},2,0);
+        if get(t2synthPopup,'value') ~= 2
+            soundSamp2 = makeSound(str{val},2,0);
             fm = 0;
         end
         for i=1:length(dots2.position)
